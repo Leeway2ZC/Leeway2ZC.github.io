@@ -306,7 +306,129 @@
 <li>理解可以在字符设备上执行的各种操作</li>
 <li>使用等待队列进行工作</li>
 </ul>
-</div></article></div><div class="right-container"><div class="widget"><div id="arAnchorBar"></div></div></div></section></div><div class="right-menu"></div><div class="modal search-modal"><div class="input-field"><input type="text" id="search_input"><label for="search-input">搜索</label></div><div id="search_result" class="search-result"></div></div><div class="blog-overlay"></div><footer class="row"><div class="footer-con"><div class="paginator"><a href="/2025/08/12/FIO-%E6%B5%8B%E8%AF%95%E5%AD%A6%E4%B9%A0%E6%96%87%E6%A1%A3/" title="FIO 测试学习文档" class="prev">PREV</a><a href="/2025/08/10/%E4%B8%8A%E4%BC%A0%E5%8D%9A%E5%AE%A2%E7%9A%84%E6%95%99%E7%A8%8B/" title="上传博客的教程" class="next">NEXT</a></div><a href="#comment" class="comment-anchor"></a><div id="vcomments"></div><script>new Valine({
+<h3 id="0-简介"><a href="#0-简介" class="headerlink" title="0 简介"></a>0 简介</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// struct file -linux - linux-2.6.0\include\linux\fs.h</span></span><br><span class="line"><span class="comment">// struct file_operations - linux-2.6.0\include\linux\fs.h</span></span><br><span class="line"><span class="comment">// generic_ro_fops - linux-2.6.0\include\linux\fs.h</span></span><br><span class="line"><span class="comment">// vfs_read() - linux-2.6.0\fs\read_write.c</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="1-注册-注销"><a href="#1-注册-注销" class="headerlink" title="1 注册&#x2F;注销"></a>1 注册&#x2F;注销</h3><ol>
+<li>使用 <strong>mknod</strong> 创建 <strong>&#x2F;dev&#x2F;so2_cdev</strong> 字符设备节点</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在QUMU上使用mknod命令</span></span><br><span class="line">mknod /dev/so2_cdev c <span class="number">42</span> <span class="number">0</span></span><br><span class="line"><span class="comment">// 42是主设备号，0是此设备号，均在so2_cdev.c中定义过</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>此时只是创建了一个节点，要使用register_chrdev_region完成注册才能在&#x2F;proc&#x2F;devices中看到设备文件</p>
+</blockquote>
+<ol start="2">
+<li>实现设备的注册和注销</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* TODO 1/6: register char device region for MY_MAJOR and NUM_MINORS starting at MY_MINOR */</span></span><br><span class="line">err = register_chrdev_region(MKDEV(MY_MAJOR, MY_MINOR),</span><br><span class="line">			NUM_MINORS, MODULE_NAME);</span><br><span class="line"><span class="comment">/* TODO 1/1: unregister char device region, for MY_MAJOR and NUM_MINORS starting at MY_MINOR */</span></span><br><span class="line">unregister_chrdev_region(MKDEV(MY_MAJOR, MY_MINOR),NUM_MINORS);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>MKDEV的意思是从主设备号MY_MAJOR开始注册次设备号MY_MINOR，注册NUM_MINORS个设备文件，如果当前主设备号下的设备文件数大于NUM_MINORS，则让主设备号＋1继续注册</p>
+</blockquote>
+<h3 id="2-注册一个已经注册过的主设备号"><a href="#2-注册一个已经注册过的主设备号" class="headerlink" title="2 注册一个已经注册过的主设备号"></a>2 注册一个已经注册过的主设备号</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用 cat proc/devices 看已有的设备文件的主设备号，然后替换掉下面的宏定义</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MY_MAJOR		42</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>此时会返回错误码 -16，#define EBUSY  16   &#x2F;* Device or resource busy *&#x2F; 表示是当前设备正忙无法被注册</p>
+</blockquote>
+<h3 id="3-打开和关闭"><a href="#3-打开和关闭" class="headerlink" title="3 打开和关闭"></a>3 打开和关闭</h3><blockquote>
+<p>打开和关闭字符设备文件</p>
+</blockquote>
+<ol>
+<li>初始化设备</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">so2_device_data</span> &#123;</span></span><br><span class="line">	<span class="comment">/* TODO 2/1: add cdev member */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> <span class="title">cdev</span>;</span></span><br><span class="line">	<span class="comment">/* TODO 4/2: add buffer with BUFSIZ elements */</span></span><br><span class="line">	<span class="type">char</span> buffer[BUFSIZ];</span><br><span class="line">	<span class="type">size_t</span> size;</span><br><span class="line">	<span class="comment">/* TODO 7/2: extra members for home */</span></span><br><span class="line">	<span class="type">wait_queue_head_t</span> wq;</span><br><span class="line">	<span class="type">int</span> flag;</span><br><span class="line">	<span class="comment">/* TODO 3/1: add atomic_t access variable to keep track if file is opened */</span></span><br><span class="line">	<span class="type">atomic_t</span> access;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>为当前设备文件建立一个结构体，成员有cdev结构体，该结构体用于在系统中注册字符设备(供cdev_init和cdev_add函数使用)，字符数组buffer用于读操作，size用于指示传输数据的大小，access是一个原子变量，用于计数实现阻塞其它进程干涉，这里只需要关注 TODO 2&#x2F;1</p>
+</blockquote>
+<ol start="2">
+<li>实现打开和释放函数</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在结构体定义static const struct file_operations so2_fops中</span></span><br><span class="line"><span class="comment">/* TODO 2/2: add open and release functions */</span></span><br><span class="line">.open = so2_cdev_open,</span><br><span class="line">.release = so2_cdev_release,</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在函数so2_cdev_open中</span></span><br><span class="line"><span class="comment">/* TODO 3/1: inode-&gt;i_cdev contains our cdev struct, use container_of to obtain a pointer to so2_device_data */</span></span><br><span class="line"><span class="comment">// 获取当前设备文件的结构体</span></span><br><span class="line">data = container_of(inode-&gt;i_cdev, <span class="keyword">struct</span> so2_device_data, cdev);</span><br><span class="line"><span class="comment">// 让file指针指向当前设备文件，实现打开</span></span><br><span class="line">file-&gt;private_data = data;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>container_of 宏用于从一个结构体成员的地址反推出成员所在的结构体的首地址，用法是container_of(ptr, type, member)，在这个例子中container_of 从 inode-&gt;i_cdev（一个struct cdev 类型的指针，指向so2_device_data的成员cdev）反推出它所在的 struct so2_device_data 结构体的首地址，从而获得设备的私有数据指针 data</p>
+</blockquote>
+<ol start="3">
+<li>显示消息</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用pr_info函数，与printf类似</span></span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>再次读取</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用 cat /dev/so2_cdev</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-访问限制"><a href="#4-访问限制" class="headerlink" title="4 访问限制"></a>4 访问限制</h3><blockquote>
+<p>使用原子变量限制设备访问</p>
+</blockquote>
+<ol>
+<li>在设备结构体中添加 <code>atomic_t</code> 变量</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在结构体so2_device_data中</span></span><br><span class="line"><span class="comment">/* TODO 3/1: add atomic_t access variable to keep track if file is opened */</span></span><br><span class="line"><span class="type">atomic_t</span> access;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>在模块初始化时对该变量进行初始化</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在函数so2_cdev_init中</span></span><br><span class="line"><span class="comment">/* TODO 3/1: set access variable to 0, use atomic_set */</span></span><br><span class="line"><span class="type">atomic_set</span>(&amp;devs[i].access, <span class="number">0</span>);</span><br><span class="line"><span class="comment">// 这里的devs是设备文件的实例化，在设备文件结构体下有定义</span></span><br><span class="line"><span class="comment">// struct so2_device_data devs[NUM_MINORS];</span></span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>在打开函数中使用该变量限制对设备的访问。我们建议使用 <code>atomic_cmpxchg()</code></li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在函数so2_cdev_open中</span></span><br><span class="line"><span class="comment">/* TODO 3/2: return immediately if access is != 0, use atomic_cmpxchg */</span></span><br><span class="line"><span class="keyword">if</span> (atomic_cmpxchg(&amp;data-&gt;access, <span class="number">0</span>, <span class="number">1</span>) != <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> -EBUSY;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>static inline int atomic_cmpxchg(atomic_t *ptr, int old, int new)<br>这个函数可以在一个原子操作中检查变量的旧值并将其设为新值，在上面的例子中，它表示如果当前的access等于旧值0就将access设为1，不等于0就不修改，无论是否发生替换，atomic_cmpxchg函数都会返回ptr指向的原始值（也就是操作之前的值）。</p>
+</blockquote>
+<ol start="4">
+<li>在释放函数中重置该变量以恢复对设备的访问权限</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在函数so2_cdev_release中</span></span><br><span class="line"><span class="comment">/* TODO 3/1: reset access variable to 0, use atomic_set */</span></span><br><span class="line"><span class="type">atomic_set</span>(&amp;data-&gt;access, <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li>模拟休眠</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// 在函数so2_cdev_open中</span><br><span class="line">set_current_state(TASK_INTERRUPTIBLE);</span><br><span class="line">schedule_timeout(1000);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>set_current_state(TASK_INTERRUPTIBLE);</code>把当前进程（<code>current</code>）的状态设置为可中断睡眠 (<code>TASK_INTERRUPTIBLE</code>)。在这个状态下，进程会被调度器认为是“睡着的”，直到有事件唤醒它<br><code>schedule_timeout(10 * HZ);</code>把当前进程从 CPU 调度队列里移走，并设置一个定时器，在 <code>10 * HZ</code> 个 <strong>jiffies</strong> 后唤醒它。<code>HZ</code> 是内核的时钟频率（例如在 x86 上常见是 100、250 或 1000），<code>10 * HZ</code> 表示 10 秒。如果在这段时间内进程收到信号，会提前被唤醒。</p>
+</blockquote>
+<h3 id="5-读操作"><a href="#5-读操作" class="headerlink" title="5 读操作"></a>5 读操作</h3><blockquote>
+<p>在驱动程序中实现读取函数</p>
+</blockquote>
+<ol>
+<li>在 <code>so2_device_data</code> 结构中保持一个缓冲区，并用 <code>MESSAGE</code> 宏的值进行初始化。缓冲区的初始化在模块的 <code>init</code> 函数中完成</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// struct so2_device_data</span></span><br><span class="line"><span class="comment">/* TODO 4/2: add buffer with BUFSIZ elements */</span></span><br><span class="line"><span class="type">char</span> buffer[BUFSIZ];</span><br><span class="line"><span class="type">size_t</span> size;</span><br><span class="line"><span class="comment">// static int so2_cdev_init(void)</span></span><br><span class="line"><span class="comment">/*TODO 4/2: initialize buffer with MESSAGE string */</span></span><br><span class="line"><span class="built_in">memcpy</span>(devs[i].buffer, MESSAGE, <span class="keyword">sizeof</span>(MESSAGE));</span><br><span class="line">devs[i].size = <span class="keyword">sizeof</span>(MESSAGE);</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>在读取调用时，将内核空间缓冲区的内容复制到用户空间缓冲区</li>
+</ol>
+<p>使用 <code>copy_to_user()</code> 函数将信息从内核空间复制到用户空间</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// static ssize_t so2_cdev_read(file, user_buffer, size, offset)</span></span><br><span class="line"><span class="comment">// 首先定义传输的字节数to_read以及获取设备文件指针</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">so2_device_data</span> *<span class="title">data</span> =</span></span><br><span class="line">		(<span class="keyword">struct</span> so2_device_data *) file-&gt;private_data;</span><br><span class="line"><span class="type">size_t</span> to_read = (size &gt; data-&gt;size - *offset) ? (data-&gt;size - *offset) : size;</span><br><span class="line"><span class="comment">/* TODO 4/4: Copy data-&gt;buffer to user_buffer, use copy_to_user */</span></span><br><span class="line"><span class="keyword">if</span> (copy_to_user(user_buffer, data-&gt;buffer + *offset, to_read) != <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> -EFAULT;</span><br><span class="line">*offset += to_read;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> to_read;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>需要将请求的字节数size和内部缓冲区大小data-&gt;size - *offset作比较，有可能请求的字节数要超过内部缓存区大小，从而引发错误，其实这里应该是判断 size+*offset &gt; data-&gt;size，可能为了防止越界写成了减去，注意要更新偏移参数，以便于用户达到文件内部缓冲区末尾时退出</p>
+</blockquote>
+<blockquote>
+<p>读取函数so2_cdev_read调用返回的值是从内核空间缓冲区传输到用户空间缓冲区的字节数</p>
+</blockquote>
+<h3 id="6-写操作"><a href="#6-写操作" class="headerlink" title="6 写操作"></a>6 写操作</h3><h3 id="7-ioctl-操作"><a href="#7-ioctl-操作" class="headerlink" title="7 ioctl 操作"></a>7 ioctl 操作</h3><h3 id="8-带消息的-ioctl"><a href="#8-带消息的-ioctl" class="headerlink" title="8 带消息的 ioctl"></a>8 带消息的 ioctl</h3><h3 id="9-使用等待队列的-ioctl"><a href="#9-使用等待队列的-ioctl" class="headerlink" title="9 使用等待队列的 ioctl"></a>9 使用等待队列的 ioctl</h3><h3 id="10-O-NONBLOCK-实现"><a href="#10-O-NONBLOCK-实现" class="headerlink" title="10 O_NONBLOCK 实现"></a>10 O_NONBLOCK 实现</h3><h2 id="四-I-O访问和中断"><a href="#四-I-O访问和中断" class="headerlink" title="四 I&#x2F;O访问和中断"></a>四 I&#x2F;O访问和中断</h2><p>实验目标：</p>
+<ul>
+<li><p>与外围设备进行通信</p>
+</li>
+<li><p>实现中断处理程序</p>
+</li>
+<li><p>将中断与进程上下文同步</p>
+</li>
+</ul>
+<p>关键词：IRQ，I&#x2F;O 端口，I&#x2F;O 地址，基地址，UART，request_region，release_region，inb，outb</p>
+<h3 id="0-简介-1"><a href="#0-简介-1" class="headerlink" title="0 简介"></a>0 简介</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//resource - /inclue/linux/ioport.h</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">resource</span> &#123;</span></span><br><span class="line">	<span class="type">resource_size_t</span> start;</span><br><span class="line">	<span class="type">resource_size_t</span> end;</span><br><span class="line">	<span class="type">const</span> <span class="type">char</span> *name;</span><br><span class="line">	<span class="type">unsigned</span> <span class="type">long</span> flags;</span><br><span class="line">	<span class="type">unsigned</span> <span class="type">long</span> desc;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">resource</span> *<span class="title">parent</span>, *<span class="title">sibling</span>, *<span class="title">child</span>;</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">//request_region - /inclue/linux/ioport.h</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> request_region(start,n,name)\</span></span><br><span class="line"><span class="meta">		__request_region(&amp;ioport_resource, (start), (n), (name), 0)</span></span><br><span class="line"><span class="comment">//__request_region() - /kernel/resource.c</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">resource</span> *__<span class="title">request_region</span>(<span class="keyword">struct</span> <span class="title">resource</span> *<span class="title">parent</span>,</span></span><br><span class="line"><span class="class">				  <span class="title">resource_size_t</span> <span class="title">start</span>, <span class="title">resource_size_t</span> <span class="title">n</span>,</span></span><br><span class="line"><span class="class">				  <span class="title">const</span> <span class="title">char</span> *<span class="title">name</span>, <span class="title">int</span> <span class="title">flags</span>)</span></span><br><span class="line"><span class="class">//<span class="title">request_irq</span>() - /<span class="title">include</span>/<span class="title">linux</span>/<span class="title">interrupt</span>.<span class="title">h</span></span></span><br><span class="line"><span class="class"><span class="title">static</span> <span class="title">inline</span> <span class="title">int</span> __<span class="title">must_check</span></span></span><br><span class="line"><span class="class"><span class="title">request_irq</span>(<span class="title">unsigned</span> <span class="title">int</span> <span class="title">irq</span>, <span class="title">irq_handler_t</span> <span class="title">handler</span>, <span class="title">unsigned</span> <span class="title">long</span> <span class="title">flags</span>,</span></span><br><span class="line"><span class="class">	    <span class="title">const</span> <span class="title">char</span> *<span class="title">name</span>, <span class="title">void</span> *<span class="title">dev</span>)</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="keyword">return</span> request_threaded_irq(irq, handler, <span class="literal">NULL</span>, flags, name, dev);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//request_threaded_irq() - /kernel/irq/manage.c</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">request_threaded_irq</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> irq, <span class="type">irq_handler_t</span> handler,</span></span><br><span class="line"><span class="params">			 <span class="type">irq_handler_t</span> thread_fn, <span class="type">unsigned</span> <span class="type">long</span> irqflags,</span></span><br><span class="line"><span class="params">			 <span class="type">const</span> <span class="type">char</span> *devname, <span class="type">void</span> *dev_id)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="实现键盘驱动程序"><a href="#实现键盘驱动程序" class="headerlink" title="实现键盘驱动程序"></a>实现键盘驱动程序</h3><p>  目标是创建一个使用键盘IRQ的驱动程序，检查传入的按键代码并将其存储在缓冲区中。通过字符设备驱动程序，用户空间可以访问该缓冲区。</p>
+<blockquote>
+<p>如果说上一个实验字符设备驱动程序是关于如何驱动外设如何实现物理设备的读写I&#x2F;O操作，那么这个实验是关于如何通过中断来操控外设实现自动化</p>
+</blockquote>
+<h3 id="1-请求I"><a href="#1-请求I" class="headerlink" title="1 请求I"></a>1 请求I</h3></div></article></div><div class="right-container"><div class="widget"><div id="arAnchorBar"></div></div></div></section></div><div class="right-menu"></div><div class="modal search-modal"><div class="input-field"><input type="text" id="search_input"><label for="search-input">搜索</label></div><div id="search_result" class="search-result"></div></div><div class="blog-overlay"></div><footer class="row"><div class="footer-con"><div class="paginator"><a href="/2025/08/12/FIO-%E6%B5%8B%E8%AF%95%E5%AD%A6%E4%B9%A0%E6%96%87%E6%A1%A3/" title="FIO 测试学习文档" class="prev">PREV</a><a href="/2025/08/10/%E4%B8%8A%E4%BC%A0%E5%8D%9A%E5%AE%A2%E7%9A%84%E6%95%99%E7%A8%8B/" title="上传博客的教程" class="next">NEXT</a></div><a href="#comment" class="comment-anchor"></a><div id="vcomments"></div><script>new Valine({
     el: "#vcomments",
     appId: "aD8jJBpu4oew3ovNY73z6Rdq-gzGzoHsz",
     appKey: "FdzS5SOPHdhYQoEUngQ8K2QW",
