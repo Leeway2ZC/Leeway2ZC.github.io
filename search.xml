@@ -4,6 +4,19 @@
   
     
     <entry>
+      <title>博客升级</title>
+      <link href="/2025/08/21/%E5%8D%9A%E5%AE%A2%E5%8D%87%E7%BA%A7/"/>
+      <url>/2025/08/21/%E5%8D%9A%E5%AE%A2%E5%8D%87%E7%BA%A7/</url>
+      
+        <content type="html"><![CDATA[<p>现在的博客还不太完善，有很多不满意的地方，例如：</p><ol><li>有个多余的…more在文章下面</li><li>显示不了访问次数</li><li>更新后日期没变动</li><li>文章下没有标签(如果解决不了，可以尝试更换主题为Indigo)</li><li>评论区有Code 403: 访问被API域名白名单拒绝，请检查你的安全域名设置</li><li>目录显示不全</li><li>页脚不显示总访问数和访客数</li><li>页眉没有图片</li></ol>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>C++开发学习笔记</title>
       <link href="/2025/08/12/C++%E5%BC%80%E5%8F%91%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
       <url>/2025/08/12/C++%E5%BC%80%E5%8F%91%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
