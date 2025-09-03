@@ -4,6 +4,19 @@
   
     
     <entry>
+      <title>工作日志</title>
+      <link href="/2025/09/02/%E5%B7%A5%E4%BD%9C%E6%97%A5%E5%BF%97/"/>
+      <url>/2025/09/02/%E5%B7%A5%E4%BD%9C%E6%97%A5%E5%BF%97/</url>
+      
+        <content type="html"><![CDATA[<h2><center>2025/9/2  工作总结</center></h2><ol><li>协助排查NVME硬盘重启、热拔插后速度降级、不识别的问题，通过定位S&#x2F;N尾号2772的SSD盘确认故障，排除2772盘后，使用其他盘在m31节点上识别正常后将PCI版本降为4.0，测试重启、热拔插等问题都正常。</li><li>m31对于的是下面那个L型插件，m12对应右上角那个R型插件，m30对于的是上面那个L型插件</li><li>m31是scn28-5kc(左节点)|scn29-5kc(右节点)，m30是scn28(左节点)|scn29(右节点)，m12是scn30-5kc(左节点)|scn31-5kc(右节点)</li><li>板子下电流程：<ol><li>ssh 25.8.23.100，登录到CMU节点</li><li>yhpo off mX，X是板子号，如12</li></ol></li><li>m12板子拉核加电流程<ol><li>ssh 25.8.73.2，密码111111，登录到mn2节点</li><li>cd &#x2F;home&#x2F;test641&#x2F;2206_networkmanager&#x2F;smu&#x2F;port_train&#x2F;</li><li>执行加电脚本 .&#x2F;yhpo_mn_pl.sh P000ACPM12 mn2 (拉核启动)</li><li>登录到 25.8.32.2，ssh scn30-5kc 进入12号板子</li></ol></li><li>m31板子拉核加电流程<ol><li>ssh 25.8.73.2，密码111111，登录到mn2节点</li><li>cd &#x2F;home&#x2F;test641&#x2F;2206_networkmanager&#x2F;smu&#x2F;port_train&#x2F;</li><li>执行加电脚本 .&#x2F;yhpo_mn_pl.sh P000ACPM31 mn2 (拉核启动)</li><li>登录到25.8.32.100，然后ssh 198.163.1.63 -p 2200（从串口进入30号板左边节点，右边节点是-p 2202），这里的密码是0penBmc</li><li>在串口中输入 echo root:111111 | chpasswd（重置节点root密码为111111）</li><li>在mn2（25.8.73.2这个节点）中执行ssh scn28-5kc进入m31也就是31号板</li></ol></li></ol><h2><center>2025/9/3  工作总结</center></h2>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>博客测试</title>
       <link href="/2025/08/28/%E5%8D%9A%E5%AE%A2%E6%B5%8B%E8%AF%95/"/>
       <url>/2025/08/28/%E5%8D%9A%E5%AE%A2%E6%B5%8B%E8%AF%95/</url>
