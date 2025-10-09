@@ -1,0 +1,200 @@
+<!DOCTYPE html><html lang="cn"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="baidu-site-verification" content="1EB8XoOl0C"><meta name="google-site-verification" content="K7thEgdLm0UfRWJ5MGdF7sCcjClSzAlxFLPv2Oz5CGM"><title> BeeGFS学习笔记 · LeeWay</title><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="BeeGFS学习笔记 - David Lee"><meta name="keywords"><meta name="author" content="David Lee"><link rel="short icon" href="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/favicon-32x32.png"><link rel="stylesheet" href="https://bubuzou.oss-cn-shenzhen.aliyuncs.com/blog/202010/bubuzou.css"><link rel="search" type="application/opensearchdescription+xml" href="https://leeway2zc.top/atom.xml" title="LeeWay"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+<script src='//unpkg.com/valine/dist/Valine.min.js'></script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" integrity="sha512-fHwaWebuwA7NSF5Qg/af4UeDx9XqUpYpOGgubo3yWu+b2IQR4UeQwbb42Ti7gVAjNtVoI/I9TEoYeu9omwcC6g==" crossorigin="anonymous" referrerpolicy="no-referrer" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="LeeWay" type="application/atom+xml">
+</head><body><header><div class="header row"> <a href="/" class="logo-link"><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250811154253_3.jpg"></a><ul id="nav_list" class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" data-hover="博文" class="nav-list-link">博文</a></li><li class="nav-list-item"><a href="/archives/" target="_self" data-hover="归档" class="nav-list-link">归档</a></li><li class="nav-list-item"><a href="/categories/live/" target="_self" data-hover="生活" class="nav-list-link">生活</a></li><li class="nav-list-item"><a href="/categories/read/" target="_self" data-hover="读书" class="nav-list-link">读书</a></li><li class="nav-list-item"><a href="/about/" target="_self" data-hover="关于" class="nav-list-link">关于</a></li></ul><div class="search"><a id="search_btn" href="#search"></a></div><div id="nav_btn" class="nav-btn"><span></span><span></span><span></span></div></div></header><div class="row scroll-con"><section class="container"><!-- for archive page--><div id="postAr" class="post"><article class="post-block"><h1 class="post-title">BeeGFS学习笔记</h1><div class="post-info">2025-10-09<p id="busuanzi_container_page_pv" class="visit"><span id="busuanzi_value_page_pv"> </span><span>次访问</span></p></div><div class="post-content"><h1><center>BeeGFS 学习笔记</center></h1>
+
+<blockquote>
+<p>通过实践的方式学习BeeGFS</p>
+</blockquote>
+<h2 id="一-在虚拟机中通过docker容器搭建beegfs集群"><a href="#一-在虚拟机中通过docker容器搭建beegfs集群" class="headerlink" title="一  在虚拟机中通过docker容器搭建beegfs集群"></a>一  在虚拟机中通过docker容器搭建beegfs集群</h2><h3 id="1-目标"><a href="#1-目标" class="headerlink" title="1 目标"></a>1 目标</h3><p>在一台虚拟机中运行四个 Docker 容器</p>
+<table>
+<thead>
+<tr>
+<th>容器名</th>
+<th>角色</th>
+<th>IP</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>beegfs-mgmtd</code></td>
+<td>管理节点</td>
+<td>172.25.0.2</td>
+<td>注册、调度、心跳</td>
+</tr>
+<tr>
+<td><code>beegfs-meta</code></td>
+<td>元数据节点</td>
+<td>172.25.0.3</td>
+<td>管理目录结构和 inode</td>
+</tr>
+<tr>
+<td><code>beegfs-storage</code></td>
+<td>存储节点</td>
+<td>172.25.0.4</td>
+<td>存放数据块</td>
+</tr>
+<tr>
+<td><code>beegfs-client</code></td>
+<td>客户端节点</td>
+<td>172.25.0.5</td>
+<td>挂载并访问 BeeGFS</td>
+</tr>
+</tbody></table>
+<p>所有容器在同一个 Docker 自定义网络中，能够互相 <code>ping</code> 通</p>
+<h3 id="2-创建自定义网络"><a href="#2-创建自定义网络" class="headerlink" title="2 创建自定义网络"></a>2 创建自定义网络</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create --subnet=172.25.0.0/16 beegfs-net</span><br></pre></td></tr></table></figure>
+
+<p>验证</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker network inspect beegfs-net | grep Subnet</span><br><span class="line"><span class="comment"># &quot;Subnet&quot;: &quot;172.25.0.0/16&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251009092114274.png" alt="image-20251009092114274"></p>
+<h3 id="3-创建四个容器"><a href="#3-创建四个容器" class="headerlink" title="3 创建四个容器"></a>3 创建四个容器</h3><h4 id="创建管理节点容器-mgmtd"><a href="#创建管理节点容器-mgmtd" class="headerlink" title="创建管理节点容器(mgmtd)"></a>创建管理节点容器(mgmtd)</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd --name beegfs-mgmtd --hostname mgmtd \</span><br><span class="line">  --network beegfs-net --ip 172.25.0.2 \</span><br><span class="line">  --privileged ubuntu:20.04 bash</span><br></pre></td></tr></table></figure>
+
+<h4 id="创建元数据节点-meta"><a href="#创建元数据节点-meta" class="headerlink" title="创建元数据节点(meta)"></a>创建元数据节点(meta)</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd --name beegfs-meta --hostname meta \</span><br><span class="line">  --network beegfs-net --ip 172.25.0.3 \</span><br><span class="line">  --privileged ubuntu:20.04 bash</span><br></pre></td></tr></table></figure>
+
+<h4 id="创建存储节点-storage"><a href="#创建存储节点-storage" class="headerlink" title="创建存储节点(storage)"></a>创建存储节点(storage)</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd --name beegfs-storage --hostname storage \</span><br><span class="line">  --network beegfs-net --ip 172.25.0.4 \</span><br><span class="line">  --privileged ubuntu:20.04 bash</span><br></pre></td></tr></table></figure>
+
+<h4 id="创建客户端节点-client"><a href="#创建客户端节点-client" class="headerlink" title="创建客户端节点(client)"></a>创建客户端节点(client)</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd --name beegfs-client --hostname client \</span><br><span class="line">  --network beegfs-net --ip 172.25.0.5 \</span><br><span class="line">  --privileged ubuntu:20.04 bash</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-测试网络连通性"><a href="#4-测试网络连通性" class="headerlink" title="4 测试网络连通性"></a>4 测试网络连通性</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 管理节点</span></span><br><span class="line">docker <span class="built_in">exec</span> -it beegfs-mgmtd bash</span><br><span class="line"><span class="comment"># 先安装工具</span></span><br><span class="line">apt update</span><br><span class="line">apt install -y iputils-ping net-tools vim build-essential gdb wget curl</span><br><span class="line"><span class="comment"># ping一下</span></span><br><span class="line">ping -c 2 172.25.0.3   <span class="comment"># meta</span></span><br><span class="line">ping -c 2 172.25.0.4   <span class="comment"># storage</span></span><br><span class="line">ping -c 2 172.25.0.5   <span class="comment"># client</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 元数据节点</span></span><br><span class="line">docker <span class="built_in">exec</span> -it beegfs-meta bash</span><br><span class="line"><span class="comment"># 先安装工具</span></span><br><span class="line">apt update</span><br><span class="line">apt install -y iputils-ping net-tools vim build-essential gdb wget curl</span><br><span class="line"><span class="comment"># ping一下</span></span><br><span class="line">ping -c 2 172.25.0.2   <span class="comment"># meta</span></span><br><span class="line">ping -c 2 172.25.0.4   <span class="comment"># storage</span></span><br><span class="line">ping -c 2 172.25.0.5   <span class="comment"># client</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 存储节点</span></span><br><span class="line">docker <span class="built_in">exec</span> -it beegfs-storage bash</span><br><span class="line"><span class="comment"># 先安装工具</span></span><br><span class="line">apt update</span><br><span class="line">apt install -y iputils-ping net-tools vim build-essential gdb wget curl</span><br><span class="line"><span class="comment"># ping一下</span></span><br><span class="line">ping -c 2 172.25.0.2   <span class="comment"># meta</span></span><br><span class="line">ping -c 2 172.25.0.3   <span class="comment"># storage</span></span><br><span class="line">ping -c 2 172.25.0.5   <span class="comment"># client</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 客户端节点</span></span><br><span class="line">docker <span class="built_in">exec</span> -it beegfs-client bash</span><br><span class="line"><span class="comment"># 先安装工具</span></span><br><span class="line">apt update</span><br><span class="line">apt install -y iputils-ping net-tools vim build-essential gdb wget curl</span><br><span class="line"><span class="comment"># ping一下</span></span><br><span class="line">ping -c 2 172.25.0.2   <span class="comment"># meta</span></span><br><span class="line">ping -c 2 172.25.0.3   <span class="comment"># storage</span></span><br><span class="line">ping -c 2 172.25.0.4   <span class="comment"># client</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-逐个容器安装BeeGFS并启动节点"><a href="#5-逐个容器安装BeeGFS并启动节点" class="headerlink" title="5 逐个容器安装BeeGFS并启动节点"></a>5 逐个容器安装BeeGFS并启动节点</h3><p>1️⃣ 管理节点 <code>mgmtd</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">wget https://www.beegfs.io/release/beegfs_8.1/dists/focal/amd64/beegfs-mgmtd_8.1.0_amd64.deb</span><br><span class="line"></span><br><span class="line"><span class="built_in">mkdir</span> -p /data/mgmtd</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;storeMgmtdDirectory=/data/mgmtd&quot;</span> &gt; /etc/beegfs/beegfs-mgmtd.conf</span><br><span class="line"></span><br><span class="line">/opt/beegfs/sbin/beegfs-mgmtd --init=<span class="literal">true</span> --log-target=stderr --log-level=info</span><br><span class="line">/opt/beegfs/sbin/beegfs-mgmtd --log-target=stderr  --log-level=info  --auth-disable=<span class="literal">true</span>  --tls-disable=<span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251009114047133.png" alt="image-20251009114047133"></p>
+<p>2️⃣ 元数据节点 <code>meta</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">wget https://www.beegfs.io/release/beegfs_8.1/dists/focal/amd64/beegfs-meta_8.1.0_amd64.deb</span><br><span class="line"></span><br><span class="line">dpkg -i beegfs-meta_8.1.0_amd64.deb</span><br><span class="line"></span><br><span class="line"><span class="built_in">mkdir</span> -p /data/meta</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;storeMetaDirectory=/data/meta&quot;</span> &gt; /etc/beegfs/beegfs-meta.conf</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;connInterfaces=eth0&quot;</span> &gt;&gt; /etc/beegfs/beegfs-meta.conf</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;sysMgmtdHost=&lt;MGMT_NODE_IP&gt;&quot;</span> &gt;&gt; /etc/beegfs/beegfs-meta.conf</span><br></pre></td></tr></table></figure>
+
+<p>3️⃣ 存储节点 <code>storage</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">wget https://www.beegfs.io/release/beegfs_8.1/dists/focal/amd64/beegfs-storage_8.1.0_amd64.deb</span><br><span class="line"></span><br><span class="line">dpkg -i beegfs-storage_8.1.0_amd64.deb</span><br><span class="line"></span><br><span class="line"><span class="built_in">mkdir</span> -p /data/storage</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;storeStorageDirectory=/data/storage&quot;</span> &gt; /etc/beegfs/beegfs-storage.conf</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;connInterfaces=eth0&quot;</span> &gt;&gt; /etc/beegfs/beegfs-storage.conf</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;sysMgmtdHost=&lt;MGMT_NODE_IP&gt;&quot;</span> &gt;&gt; /etc/beegfs/beegfs-storage.conf</span><br></pre></td></tr></table></figure>
+
+<p>4️⃣  客户节点 <code>client</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">wget https://www.beegfs.io/release/beegfs_8.1/dists/focal/amd64/beegfs-client_8.1.0_all.deb</span><br><span class="line"></span><br><span class="line">dpkg -i beegfs-client_8.1.0_all.deb</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;sysMgmtdHost=172.25.0.2&quot;</span> &gt; /etc/beegfs/beegfs-client.conf</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;connInterfaces=eth0&quot;</span> &gt;&gt; /etc/beegfs/beegfs-client.conf</span><br></pre></td></tr></table></figure>
+
+
+
+<p>到这里宣告失败了，在docker容器中部署beegfs实在太难了</p>
+</div></article></div><div class="right-container"><div class="widget"><div id="arAnchorBar"></div></div></div></section></div><div class="right-menu"></div><div class="modal search-modal"><div class="input-field"><input type="text" id="search_input"><label for="search-input">搜索</label></div><div id="search_result" class="search-result"></div></div><div class="blog-overlay"></div><footer class="row"><div class="footer-con"><div class="paginator"><a href="/2025/09/26/%E6%80%BB%E7%BB%93%E4%B8%8E%E6%80%9D%E8%80%83/" title="总结与思考" class="next">NEXT</a></div><div class="copyright"><p>© 2016 - 2025 <a target="_blank">David Lee</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> <br> and <a href="https://github.com/Bulandent/hexo-theme-bubuzou" target="_blank">hexo-theme-bubuzou</a></p><p><span id="busuanzi_container_site_pv">本站总访问数：<span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_site_uv" style="padding-left: 6px;">访客数：<span id="busuanzi_value_site_uv"></span></span></p><p> <span style="padding-right: 6px;">闽ICP备16007301号-2</span></p></div><div class="totop"><i></i></div></div></footer><script async src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=TeX-MML-AM_CHTML"></script><script src="https://bubuzou.oss-cn-shenzhen.aliyuncs.com/blog/202010/jquery-1.8.2.min.js"></script><script src="https://bubuzou.oss-cn-shenzhen.aliyuncs.com/blog/202010/articleCatalog.js"></script><script src="https://bubuzou.oss-cn-shenzhen.aliyuncs.com/blog/202010/main.js"></script><script>(function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;e=o.createElement(i);r=o.getElementsByTagName(i)[0];e.src='//www.google-analytics.com/analytics.js';r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));ga('create',"UA-65933410-1",'auto');ga('send','pageview');</script><script>const valineAPI = (() => {
+try {
+    AV.init("aD8jJBpu4oew3ovNY73z6Rdq-gzGzoHsz", "FdzS5SOPHdhYQoEUngQ8K2QW");
+} catch(error) {}
+const isExist = (identity) => {
+    identity = identity || getRealPath();
+    let query = new AV.Query('Timer');
+    return new Promise((resolve, reject) => {
+    query.equalTo("identity", identity);
+    query.find().then(results => {
+        resolve(results.length > 0);
+    }, error => reject(error));
+    })
+}
+
+const _get = (identity) => {
+    let query = null;
+    if(identity && identity instanceof Array){
+    let querys = [];
+    for(let i = 0; i < identity.length; ++i) {
+        querys[i] = new AV.Query('Timer');
+        querys[i].equalTo('identity', identity[i]);
+    }
+    query = AV.Query.or.apply(null ,querys);
+    } else {
+    identity = identity || getRealPath();
+    query = new AV.Query("Timer");
+    query.equalTo("identity", identity);
+    }
+
+    return new Promise((resolve, reject) => {
+    query.find()
+    .then(results => resolve(results))
+    .catch(error => reject(error))
+    })
+}
+
+const create = (identity) => {
+    identity = identity || getRealPath();
+    return new Promise((resolve, reject) => {
+    let Todo = AV.Object.extend('Timer');
+    let todo = new Todo();
+    todo.set("times", 1);
+    todo.set("identity", identity);
+    todo.save().then(res => resolve(true), error => reject(error));
+    })
+}
+
+const update = (identity) => {
+    identity = identity || getRealPath();
+    return new Promise((resolve, reject) => {
+    let query = new AV.Query('Timer');
+    query.equalTo("identity", identity);
+    query.find().then(todos => {
+        todos.forEach(todo => {
+        todo.set("times", todo.attributes.times + 1);
+        });
+        return AV.Object.saveAll(todos);
+    }).then(todos => resolve(true), error => reject(error));
+    })
+}
+
+return {
+    isExist,
+    _get,
+    update,
+    create
+}
+})()
+
+const calcAndWriteTimes = () => {
+let isPost = true;
+
+let timerAllDOM = document.querySelectorAll(".article-timer");
+
+if(isPost) {
+    let identity = timerAllDOM[0].getAttribute("data-identity");
+    valineAPI.isExist(identity)
+    .then(exist => {
+    if(exist) {
+        return valineAPI.update(identity);
+    }
+    return new Promise(resolve => resolve(true));
+    })
+    .then( succuess => valineAPI._get(identity))
+    .then( result => timerAllDOM[0].innerText = result[0].attributes.times)
+    .catch(error => console.log(error.message))
+    return ;
+}
+
+let timerDOMCache = {};
+
+for(let timerDOM of timerAllDOM) {
+    let identity = timerDOM.getAttribute("data-identity");
+    if(timerDOMCache.hasOwnProperty(identity)){
+    timerDOMCache[identity].dom.push(timerDOM);
+    }else{
+    timerDOMCache[identity] = {
+        dom: [timerDOM],
+        times: undefined
+    };
+    }
+}
+
+let identities = Object.keys(timerDOMCache);
+valineAPI._get(identities).then(results => {
+    for(let result of results) {
+    let {identity, times} = result.attributes;
+    timerDOMCache[identity].times = times;
+    timerDOMCache[identity].dom.map(item => item.innerText = times);
+    }
+    for(let identity of identities) {
+    if(timerDOMCache[identity].times){
+        continue;
+    }
+    timerDOMCache[identity].dom.map(item => item.innerText = 1);
+    valineAPI.create(identity);
+    }
+}).catch(error => console.log(error.message))
+}
+
+if(true){
+calcAndWriteTimes();
+}</script></body></html>
