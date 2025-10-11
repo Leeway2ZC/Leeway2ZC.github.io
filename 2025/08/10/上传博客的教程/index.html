@@ -26,8 +26,7 @@
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global user.name <span class="string">&quot;Leeway2ZC&quot;</span></span><br></pre></td></tr></table></figure>
 </li>
 <li><p>配置全局Git邮箱</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global user.email <span class="string">&quot;leeway2zc@gmail.com&quot;</span></span><br></pre></td></tr></table></figure>
-</li>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global user.email <span class="string">&quot;leeway2zc@gmail.com&quot;</span></span><br></pre></td></tr></table></figure></li>
 </ul>
 </li>
 <li><p>然后就可以按照上面的流程写文章啦</p>
@@ -38,7 +37,7 @@
 </blockquote>
 <p>使用git退回上一个提交版本(将源码分支和网站都退回到上个版本)：</p>
 <ol>
-<li><code>git log --oneline</code> # 找到上一个版本的 commit ID</li>
+<li><code>git log --oneline </code> # 找到上一个版本的 commit ID</li>
 <li><code>git reset --hard &lt;commit-id&gt;</code> # 找到上一个版本的 commit ID</li>
 <li><code>git push origin main --force</code> # 推送（覆盖远端）</li>
 </ol>
@@ -61,6 +60,7 @@
 </li>
 <li><p>如果发现问题</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git checkout main</span><br><span class="line">git branch -D test-theme</span><br></pre></td></tr></table></figure>
+
 <p>直接删除分支，一切回到切换主题前</p>
 </li>
 </ol>
@@ -78,10 +78,12 @@
 </ol>
 </li>
 </ol>
-<p><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20250811005047923.png" alt="image-20250811005047923" style="zoom:50%;" /></p>
+<img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20250811005047923.png" alt="image-20250811005047923" style="zoom:50%;" />
+
 <h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><ul>
 <li><p>如果在另一台设备上做了修改，那么写文章前先要拉取最新代码</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git pull origin main</span><br></pre></td></tr></table></figure>
+
 <p>从而确保代码库是最新的，避免冲突</p>
 </li>
 </ul>
