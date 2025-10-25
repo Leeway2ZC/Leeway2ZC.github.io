@@ -6,15 +6,9 @@
 
 
 <h2 id="一-本地文件系统测试"><a href="#一-本地文件系统测试" class="headerlink" title="一  本地文件系统测试"></a>一  本地文件系统测试</h2><h3 id="1-安装依赖"><a href="#1-安装依赖" class="headerlink" title="1 安装依赖"></a>1 安装依赖</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update &amp;&amp; <span class="built_in">sudo</span> apt install -y git build-essential automake libopenmpi-dev openmpi-bin libaio-dev</span><br></pre></td></tr></table></figure>
-
 <h3 id="2-克隆并编译-IOR"><a href="#2-克隆并编译-IOR" class="headerlink" title="2 克隆并编译 IOR"></a>2 克隆并编译 IOR</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/hpc/ior.git</span><br><span class="line"><span class="built_in">cd</span> ior</span><br><span class="line">./bootstrap</span><br><span class="line">./configure</span><br><span class="line">make</span><br></pre></td></tr></table></figure>
-
 <h3 id="3-测试文件系统"><a href="#3-测试文件系统" class="headerlink" title="3 测试文件系统"></a>3 测试文件系统</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Test ext4 (replace /path/to/ext4/testfile with your ext4 mount path):</span></span><br><span class="line">./src/ior -a POSIX -w -r -t 1m -b 1g -s 1 -o /path/to/ext4/testfile -e -C</span><br></pre></td></tr></table></figure>
-
-<h3 id="4-测试结果"><a href="#4-测试结果" class="headerlink" title="4 测试结果"></a>4 测试结果</h3><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251010085447357.png" alt="image-20251010085447357" style="zoom:150%;" />
-
-
-
+<h3 id="4-测试结果"><a href="#4-测试结果" class="headerlink" title="4 测试结果"></a>4 测试结果</h3><p><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251010085447357.png" alt="image-20251010085447357" style="zoom:150%;" /></p>
 <h2 id="二-分布式文件系统测试"><a href="#二-分布式文件系统测试" class="headerlink" title="二  分布式文件系统测试"></a>二  分布式文件系统测试</h2><blockquote>
 <p>配置：至少两个节点，节点间能互相ping通<br>这里使用两台virtualBox模拟两个节点，通过桥接模式连接<br>ior11作为客户端 ip 地址为 192.168.222.154，ubuntu20作为服务器 ip 地址为 192.168.222.233<br>文中node1和node2在此测试中分别为ubuntu20和ior11</p>
 </blockquote>
@@ -22,72 +16,60 @@
 <li>更新系统并添加 GlusterFS PPA（在所有节点上执行）</li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install software-properties-common -y</span><br><span class="line"><span class="built_in">sudo</span> add-apt-repository ppa:gluster/glusterfs-10 -y</span><br><span class="line"><span class="built_in">sudo</span> apt update</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
+<ol>
 <li>安装 GlusterFS 服务器（在所有节点上执行）</li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt install glusterfs-server -y</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
+<ol>
 <li>启动并启用 GlusterFS 服务（在所有节点上执行）</li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl start glusterd</span><br><span class="line"><span class="built_in">sudo</span> systemctl <span class="built_in">enable</span> glusterd</span><br><span class="line"><span class="built_in">sudo</span> systemctl status glusterd  <span class="comment"># 检查服务是否运行</span></span><br></pre></td></tr></table></figure>
-
 <p><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251010153130847.png" alt="image-20251010153130847"></p>
-<ol start="4">
-<li>配置主机名解析（在所有节点上执行）: 编辑 &#x2F;etc&#x2F;hosts 文件，添加所有节点的 IP 和主机名。例如</li>
+<ol>
+<li>配置主机名解析（在所有节点上执行）: 编辑 /etc/hosts 文件，添加所有节点的 IP 和主机名。例如</li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> vim /etc/hosts</span><br></pre></td></tr></table></figure>
-
-<p>​	添加内容如下:</p>
+<p>​    添加内容如下:</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 替换node和地址为真实的主机名和ip地址</span></span><br><span class="line">192.168.1.101 node1  <span class="comment"># 使用hostname查看主机名</span></span><br><span class="line">192.168.1.102 node2  <span class="comment"># 使用ip a查看ip地址</span></span><br></pre></td></tr></table></figure>
-
 <p><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251010153354392.png" alt="image-20251010153354392"></p>
 <p><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251010153421113.png" alt="image-20251010153421113"></p>
 <blockquote>
 <p>这一步的目的是确保双方能ping通</p>
 </blockquote>
-<ol start="5">
+<ol>
 <li>配置防火墙（如果启用，在所有节点上执行）: GlusterFS 使用端口 24007-24008、49152 等。</li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ufw allow from 192.168.1.0/24 to any port 24007:24008 proto tcp</span><br><span class="line"><span class="comment"># 根据卷 brick 数量调整</span></span><br><span class="line"><span class="built_in">sudo</span> ufw allow from 192.168.1.0/24 to any port 49152:49160 proto tcp  </span><br><span class="line"><span class="built_in">sudo</span> ufw reload</span><br></pre></td></tr></table></figure>
-
 <blockquote>
 <p>这一步我没整，因为虚拟机没启用防火墙</p>
 </blockquote>
-<ol start="6">
+<ol>
 <li>建立节点间的信任(从服务器节点上执行)</li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> gluster peer probe node2</span><br><span class="line"><span class="built_in">sudo</span> gluster peer status  <span class="comment"># 检查是否连接成功</span></span><br></pre></td></tr></table></figure>
-
 <p><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251010153709826.png" alt="image-20251010153709826"></p>
 <blockquote>
 <p>只要能ping通就能连接</p>
 </blockquote>
-<ol start="7">
-<li><strong>创建存储砖</strong>（brick，在所有节点上执行）: 为 GlusterFS 准备专用目录和分区（例如，使用 &#x2F;data&#x2F;brick1）。假设您有一个空分区 &#x2F;dev&#x2F;sdb：</li>
+<ol>
+<li><strong>创建存储砖</strong>（brick，在所有节点上执行）: 为 GlusterFS 准备专用目录和分区（例如，使用 /data/brick1）。假设您有一个空分区 /dev/sdb：</li>
 </ol>
 <p><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251010153828717.png" alt="image-20251010153828717"></p>
 <blockquote>
 <p>通过在virtualbox中添加虚拟磁盘可以为虚拟机增加一个空分区sdb</p>
 </blockquote>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 执行下面命令完成分区创建以及挂载</span></span><br><span class="line"><span class="built_in">sudo</span> mkfs.xfs /dev/sdb</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">mkdir</span> -p /data/brick1</span><br><span class="line"><span class="built_in">sudo</span> mount /dev/sdb /data/brick1</span><br></pre></td></tr></table></figure>
-
-<p>​	编辑 &#x2F;etc&#x2F;fstab 添加自动挂载:</p>
+<p>​    编辑 /etc/fstab 添加自动挂载:</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/dev/sdb /data/brick1 xfs defaults 0 0</span><br></pre></td></tr></table></figure>
-
-<ol start="8">
+<ol>
 <li>创建分布式卷（从服务器节点执行）: 这里创建一个简单的分布式复制卷（replicated volume），副本数为 2</li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> gluster volume create test-volume replica 2 node1:/data/brick1 node2:/data/brick1 force</span><br><span class="line"><span class="built_in">sudo</span> gluster volume start test-volume</span><br><span class="line"><span class="built_in">sudo</span> gluster volume info test-volume  <span class="comment"># 检查卷状态</span></span><br></pre></td></tr></table></figure>
-
-<ol start="9">
+<ol>
 <li>挂载 GlusterFS 卷（在客户端节点或测试节点上执行）: 安装客户端（如果不是服务器节点）</li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt install glusterfs-client -y</span><br></pre></td></tr></table></figure>
-
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">mkdir</span> /mnt/gluster</span><br><span class="line"><span class="built_in">sudo</span> mount -t glusterfs node1:/test-volume /mnt/gluster</span><br></pre></td></tr></table></figure>
-
 <blockquote>
 <p>此时就在客户端节点上挂载了服务器端的卷，客户端或服务器写这个卷两边都会同时修改</p>
 </blockquote>
@@ -95,10 +77,8 @@
 <li>如果重启虚拟机，则需要重新挂载一一遍glusterfs</li>
 </ul>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> mount -t glusterfs node1:/test-volume /mnt/gluster</span><br></pre></td></tr></table></figure>
-
-<p>​	或者设置自动挂载</p>
+<p>​    或者设置自动挂载</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> vim /etc/fstab</span><br><span class="line">node1:/test-volume /mnt/gluster glusterfs defaults,_netdev,backupvolfile-server=node2 0 0</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>在服务器上使用 <code>echo &quot;Hello Gluster&quot; &gt; /mnt/gluster/testfile</code> 测试是否挂载成功</li>
 </ul>
@@ -109,35 +89,31 @@
 </ul>
 <p><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251010164633499.png" alt="image-20251010164633499"></p>
 <h2 id="2-安装-MPI-和-IOR"><a href="#2-安装-MPI-和-IOR" class="headerlink" title="2  安装 MPI 和 IOR"></a>2  安装 MPI 和 IOR</h2><blockquote>
-<p>IOR 是一个 I&#x2F;O 基准测试工具，需要 MPI支持分布式测试，这里使用OpenMPI</p>
+<p>IOR 是一个 I/O 基准测试工具，需要 MPI支持分布式测试，这里使用OpenMPI</p>
 </blockquote>
 <ol>
 <li>安装OpenMPI（在所有测试节点上执行）</li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install openmpi-bin openmpi-common libopenmpi-dev -y</span><br><span class="line">mpirun --version</span><br></pre></td></tr></table></figure>
-
-<p>​	如果需要 SSH 支持分布式运行（多节点）</p>
+<p>​    如果需要 SSH 支持分布式运行（多节点）</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt install openssh-server -y</span><br><span class="line"><span class="comment"># 配置无密码 SSH（生成密钥并复制到其他节点）</span></span><br><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id user@node2  <span class="comment"># 替换 user 和 node2</span></span><br><span class="line"></span><br><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id user@node1  <span class="comment"># 替换 user 和 node2</span></span><br></pre></td></tr></table></figure>
-
 <blockquote>
 <p>配置无密码 SSH 时要注意，如果node1或2的ssh配置文件没有设置<br>PermitRootLogin yes<br>PasswordAuthentication yes<br>是无法通过密码 ssh 到 node1或2 上的<br>修改完ssh配置后，使用sudo sshd -t检查是否有语法错误，然后重启ssh服务<br>sudo systemctl restart ssh<br>sudo systemctl status ssh   # 检查服务是否运行，无错误</p>
 </blockquote>
-<ol start="2">
+<ol>
 <li>安装 IOR（在测试节点上执行，从源代码编译，因为 Ubuntu 仓库中没有直接包）: IOR 需要 MPI 支持，所以在配置时指定</li>
 </ol>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install git autoconf automake libtool make gcc -y  # 安装依赖</span><br><span class="line">git clone https://github.com/hpc/ior.git</span><br><span class="line">cd ior</span><br><span class="line">./bootstrap</span><br><span class="line">./configure --prefix=/usr/local --with-mpiio</span><br><span class="line">make</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure>
-
 <blockquote>
-<p>如果提示 autoconf 版本不正确，则通过以下命令升级autoconf版本<br>sudo apt update &amp;&amp; sudo apt install -y wget tar make m4 perl<br>wget <a target="_blank" rel="noopener" href="https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz">https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz</a><br>tar -xzf autoconf-2.71.tar.gz<br>cd autoconf-2.71<br>.&#x2F;configure –prefix&#x3D;&#x2F;usr&#x2F;local<br>make<br>sudo make install</p>
+<p>如果提示 autoconf 版本不正确，则通过以下命令升级autoconf版本<br>sudo apt update &amp;&amp; sudo apt install -y wget tar make m4 perl<br>wget <a target="_blank" rel="noopener" href="https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz">https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz</a><br>tar -xzf autoconf-2.71.tar.gz<br>cd autoconf-2.71<br>./configure —prefix=/usr/local<br>make<br>sudo make install</p>
 </blockquote>
 <h2 id="3-使用-IOR-通过-MPI-测试-GlusterFS-性能"><a href="#3-使用-IOR-通过-MPI-测试-GlusterFS-性能" class="headerlink" title="3  使用 IOR 通过 MPI 测试 GlusterFS 性能"></a>3  使用 IOR 通过 MPI 测试 GlusterFS 性能</h2><blockquote>
-<p>IOR 支持多种 I&#x2F;O 模式（如 POSIX、MPI-IO），可以测试读&#x2F;写带宽、IOPS 等。使用 MPI 允许分布式测试（多进程&#x2F;多节点）</p>
+<p>IOR 支持多种 I/O 模式（如 POSIX、MPI-IO），可以测试读/写带宽、IOPS 等。使用 MPI 允许分布式测试（多进程/多节点）</p>
 </blockquote>
 <ol>
 <li>单机测试写入性能（MPI-IO 接口，2 进程，块大小 1MB，传输大小 1MB，重复 3 次）</li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mpirun -np 2 ior -a MPIIO -b 1m -t 1m -i 3 -o /mnt/gluster/testfile -w</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>-np 2: 使用 2 个 MPI 进程（根据您的 CPU 核心调整）</li>
 <li>-a MPIIO: 使用 MPI-IO 接口（适合分布式文件系统）</li>
@@ -145,23 +121,20 @@
 <li>-t 1m: 传输大小（transfer size）。</li>
 <li>-i 3: 重复迭代 3 次。</li>
 <li>-o: 输出文件路径（在 Gluster 卷上）</li>
-<li>-w: 只测试写入。 输出将显示带宽（MB&#x2F;s）、操作时间等</li>
+<li>-w: 只测试写入。 输出将显示带宽（MB/s）、操作时间等</li>
 </ul>
 <p><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251010172727658.png" alt="image-20251010172727658"></p>
-<ol start="2">
+<ol>
 <li>测试读取性能</li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mpirun -np 2 ior -a MPIIO -b 1m -t 1m -i 3 -o /mnt/gluster/testfile -r</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
+<ol>
 <li><strong>多节点测试(重点部分)</strong></li>
 </ol>
 <p>使用 -hostfile 指定主机： 创建 hostfile.txt：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">node1 slots=2  // slots是可用cpu数量</span><br><span class="line">node2 slots=2</span><br></pre></td></tr></table></figure>
-
 <p>进行测试</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mpirun --hostfile hostfile.txt ior -a MPIIO -b 1m -t 1m -i 3 -o /mnt/gluster/testfile -w</span><br></pre></td></tr></table></figure>
-
 <p><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251011081051277.png" alt="image-20251011081051277"><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251011081112988.png" alt="image-20251011081112988"></p>
 <p><img src="https://leeway2zcblog-1373523181.cos.ap-guangzhou.myqcloud.com/img/image-20251011081230613.png" alt="image-20251011081230613"></p>
 <h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4 总结"></a>4 总结</h2><blockquote>
@@ -171,22 +144,37 @@
 <li>在所有节点上启动 GlusterFS 服务</li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl start glusterd</span><br><span class="line"><span class="built_in">sudo</span> systemctl <span class="built_in">enable</span> glusterd</span><br><span class="line"><span class="built_in">sudo</span> systemctl status glusterd</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
+<ol>
 <li>挂载 GlusterFS 卷</li>
 </ol>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo mount -t glusterfs node1:/test-volume /mnt/gluster</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
+<ol>
 <li>进行测试</li>
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 准备hostfile.txt文件内容</span></span><br><span class="line">node1 slots=2</span><br><span class="line">node2 slots=2</span><br></pre></td></tr></table></figure>
-
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 运行测试</span></span><br><span class="line">mpirun --hostfile hostfile.txt ior -a MPIIO -b 1m -t 1m -i 3 -o /mnt/gluster/testfile -w</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="三-离线环境下安装-IOR"><a href="#三-离线环境下安装-IOR" class="headerlink" title="三  离线环境下安装 IOR"></a>三  离线环境下安装 IOR</h2></div></article></div><div class="right-container"><div class="widget"><div id="arAnchorBar"></div></div></div></section></div><div class="right-menu"></div><div class="modal search-modal"><div class="input-field"><input type="text" id="search_input"><label for="search-input">搜索</label></div><div id="search_result" class="search-result"></div></div><div class="blog-overlay"></div><footer class="row"><div class="footer-con"><div class="paginator"><a href="/2025/10/11/VirtualBox-%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BD%BF%E7%94%A8%E4%BB%A3%E7%90%86%E6%95%99%E7%A8%8B/" title="VirtualBox 虚拟机使用代理教程" class="next">NEXT</a></div><div class="copyright"><p>© 2016 - 2025 <a target="_blank">David Lee</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> <br> and <a href="https://github.com/Bulandent/hexo-theme-bubuzou" target="_blank">hexo-theme-bubuzou</a></p><p><span id="busuanzi_container_site_pv">本站总访问数：<span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_site_uv" style="padding-left: 6px;">访客数：<span id="busuanzi_value_site_uv"></span></span></p><p> <span style="padding-right: 6px;">闽ICP备16007301号-2</span></p></div><div class="totop"><i></i></div></div></footer><script async src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=TeX-MML-AM_CHTML"></script><script src="https://bubuzou.oss-cn-shenzhen.aliyuncs.com/blog/202010/jquery-1.8.2.min.js"></script><script src="https://bubuzou.oss-cn-shenzhen.aliyuncs.com/blog/202010/articleCatalog.js"></script><script src="https://bubuzou.oss-cn-shenzhen.aliyuncs.com/blog/202010/main.js"></script><script>(function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;e=o.createElement(i);r=o.getElementsByTagName(i)[0];e.src='//www.google-analytics.com/analytics.js';r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));ga('create',"UA-65933410-1",'auto');ga('send','pageview');</script><script>const valineAPI = (() => {
+<h2 id="三-离线环境下安装-IOR"><a href="#三-离线环境下安装-IOR" class="headerlink" title="三  离线环境下安装 IOR"></a>三  离线环境下安装 IOR</h2><h3 id="1-准备环境"><a href="#1-准备环境" class="headerlink" title="1 准备环境"></a>1 准备环境</h3><p>​    需要一台与离线服务器架构和系统版本系统的机器，以现在这台离线服务器为例，它是ubuntu 22.04的系统版本，然后架构为aarch64即arm架构的，因此构建一个相同环境的机器。由于大部分系统不是arm架构的，所以可以采用在虚拟机上使用docker+qemu模拟的方案构建一个相同环境的机器。</p>
+<p>使用 Docker 的 ARM64 模拟环境（基于 QEMU）：</p>
+<p>1️⃣ 启用多架构支持，在有网络的 Ubuntu 或其他 Linux 系统上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo apt update</span><br><span class="line">sudo apt install qemu-user-static</span><br><span class="line">sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes</span><br></pre></td></tr></table></figure>
+<p>2️⃣ 运行 ARM64 的 Ubuntu 22.04 容器</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> docker run -it --platform linux/arm64 ubuntu:22.04</span><br></pre></td></tr></table></figure>
+<h3 id="2-准备deb包"><a href="#2-准备deb包" class="headerlink" title="2 准备deb包"></a>2 准备deb包</h3><p>​    现在就在一个 ARM64 Ubuntu 22.04 环境里了，然后就可以开始下载软件所必须的依赖包了，对于 IOR 而言，是以下这5个：build-essential automake libopenmpi-dev openmpi-bin libaio-dev</p>
+<p>​    单独下载安装这5个包可能会出现依赖问题，也就是依赖的依赖没有满足，使用 <code>apt-rdepends</code> 可以解决这个问题，使用 apt-rdepends 可以生成完整依赖树</p>
+<p>1️⃣ 安装 apt-rdepends</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt install -y apt-rdepends</span><br></pre></td></tr></table></figure>
+<p>2️⃣ 生成依赖列表，这会输出一个去重的包列表文件 all_deps.list，包含所有递归依赖</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-rdepends build-essential autoconf automake libtool git libaio-dev libopenmpi-dev openmpi-bin libhdf5-openmpi-dev | grep -v <span class="string">&quot;^ &quot;</span> | <span class="built_in">sort</span> -u &gt; all_deps.list</span><br></pre></td></tr></table></figure>
+<p>3️⃣ 下载所有 deb 包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p /ior-offline/debs</span><br><span class="line"><span class="built_in">cd</span> /ior-offline/debs</span><br><span class="line">xargs -a ../all_deps.list apt download</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这会下载所有包的 .deb 文件到当前目录（匹配 aarch64 架构）。如果有错误（如某些包不存在），检查列表并移除可选包</p>
+</blockquote>
+<p>4️⃣ 下载 IOR 源码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/hpc/ior.git</span><br></pre></td></tr></table></figure>
+<p>5️⃣ 打包所有文件，将 deb 目录和源代码打包成一个压缩包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /ior-offline</span><br><span class="line">tar -czvf ior-offline-package.tar.gz debs/ ior/</span><br></pre></td></tr></table></figure>
+</div></article></div><div class="right-container"><div class="widget"><div id="arAnchorBar"></div></div></div></section></div><div class="right-menu"></div><div class="modal search-modal"><div class="input-field"><input type="text" id="search_input"><label for="search-input">搜索</label></div><div id="search_result" class="search-result"></div></div><div class="blog-overlay"></div><footer class="row"><div class="footer-con"><div class="paginator"><a href="/2025/10/11/VirtualBox-%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BD%BF%E7%94%A8%E4%BB%A3%E7%90%86%E6%95%99%E7%A8%8B/" title="VirtualBox 虚拟机使用代理教程" class="next">NEXT</a></div><div class="copyright"><p>© 2016 - 2025 <a target="_blank">David Lee</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> <br> and <a href="https://github.com/Bulandent/hexo-theme-bubuzou" target="_blank">hexo-theme-bubuzou</a></p><p><span id="busuanzi_container_site_pv">本站总访问数：<span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_site_uv" style="padding-left: 6px;">访客数：<span id="busuanzi_value_site_uv"></span></span></p><p> <span style="padding-right: 6px;">闽ICP备16007301号-2</span></p></div><div class="totop"><i></i></div></div></footer><script async src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=TeX-MML-AM_CHTML"></script><script src="https://bubuzou.oss-cn-shenzhen.aliyuncs.com/blog/202010/jquery-1.8.2.min.js"></script><script src="https://bubuzou.oss-cn-shenzhen.aliyuncs.com/blog/202010/articleCatalog.js"></script><script src="https://bubuzou.oss-cn-shenzhen.aliyuncs.com/blog/202010/main.js"></script><script>(function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;e=o.createElement(i);r=o.getElementsByTagName(i)[0];e.src='//www.google-analytics.com/analytics.js';r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));ga('create',"UA-65933410-1",'auto');ga('send','pageview');</script><script>const valineAPI = (() => {
 try {
     AV.init("aD8jJBpu4oew3ovNY73z6Rdq-gzGzoHsz", "FdzS5SOPHdhYQoEUngQ8K2QW");
 } catch(error) {}
