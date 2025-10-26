@@ -6,7 +6,7 @@
 <h2 id="环境："><a href="#环境：" class="headerlink" title="环境："></a>环境：</h2><ul>
 <li>主机 win10 专业版</li>
 <li>虚拟机镜像 ubuntu 20.04 LTS</li>
-<li>代理使用 HTTP/HTTPS/SOCKS5 协议</li>
+<li>代理使用 HTTP&#x2F;HTTPS&#x2F;SOCKS5 协议</li>
 </ul>
 <h2 id="步骤："><a href="#步骤：" class="headerlink" title="步骤："></a>步骤：</h2><ol>
 <li><p>在代理软件中查看代理使用的端口号(一般是4位数)</p>
@@ -18,12 +18,12 @@
 <li><p>在虚拟机中打开终端(ctrl+alt+T)，输入以下命令即可设置虚拟机走代理 </p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">gsettings <span class="built_in">set</span> org.gnome.system.proxy mode <span class="string">&#x27;manual&#x27;</span></span><br><span class="line">gsettings <span class="built_in">set</span> org.gnome.system.proxy.http host <span class="string">&#x27;ipv4地址&#x27;</span></span><br><span class="line">gsettings <span class="built_in">set</span> org.gnome.system.proxy.http port 代理使用的端口号如7897</span><br><span class="line">gsettings <span class="built_in">set</span> org.gnome.system.proxy.https host <span class="string">&#x27;ipv4地址&#x27;</span></span><br><span class="line">gsettings <span class="built_in">set</span> org.gnome.system.proxy.https port 代理使用的端口号如7897</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>为命令行工具配置代理如 apt、curl、wget 等(可选)，在终端使用 gedit ~/.bashrc 打开bash配置文件，在文件末尾添加如下代码 </p>
+<li><p>为命令行工具配置代理如 apt、curl、wget 等(可选)，在终端使用 gedit ~&#x2F;.bashrc 打开bash配置文件，在文件末尾添加如下代码 </p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> http_proxy=<span class="string">&quot;http://ipv4地址:端口号&quot;</span></span><br><span class="line"><span class="built_in">export</span> https_proxy=<span class="string">&quot;http://ipv4地址:端口号&quot;</span></span><br><span class="line"><span class="built_in">export</span> ftp_proxy=<span class="string">&quot;http://ipv4地址:端口号&quot;</span></span><br><span class="line"><span class="built_in">export</span> no_proxy=<span class="string">&quot;localhost,127.0.0.1,::1&quot;</span></span><br></pre></td></tr></table></figure>
 </li>
-<li><p>在虚拟机终端执行 source ~/.bashrc 更新配置</p>
+<li><p>在虚拟机终端执行 source ~&#x2F;.bashrc 更新配置</p>
 </li>
-<li><p>为 APT 工具设置代理(可选)，在终端输入sudo nano /etc/apt/apt.conf.d/95proxies，在末尾添加代码</p>
+<li><p>为 APT 工具设置代理(可选)，在终端输入sudo nano &#x2F;etc&#x2F;apt&#x2F;apt.conf.d&#x2F;95proxies，在末尾添加代码</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> nano /etc/apt/apt.conf.d/95proxies</span><br><span class="line"></span><br><span class="line">Acquire::http::Proxy <span class="string">&quot;http://ipv4地址:端口号&quot;</span>;</span><br><span class="line">Acquire::https::Proxy <span class="string">&quot;http://ipv4地址:端口号&quot;</span>;</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>在代理软件中选择”允许局域网连接”，在主机cmd中输入以下代码验证是否生效</p>
