@@ -4,6 +4,19 @@
   
     
     <entry>
+      <title>日志</title>
+      <link href="/2025/11/29/%E6%97%A5%E5%BF%97/"/>
+      <url>/2025/11/29/%E6%97%A5%E5%BF%97/</url>
+      
+        <content type="html"><![CDATA[<h1 id="25-11-18"><a href="#25-11-18" class="headerlink" title="25&#x2F;11&#x2F;18"></a>25&#x2F;11&#x2F;18</h1><p>修复Cn4节点启动只进BIOS设置无法进入系统的问题</p><h1 id="25-11-19"><a href="#25-11-19" class="headerlink" title="25&#x2F;11&#x2F;19"></a>25&#x2F;11&#x2F;19</h1><p>进行测试，包括最大支持模型容量、GDS、GDR的性能等参数</p><h1 id="25-11-24"><a href="#25-11-24" class="headerlink" title="25&#x2F;11&#x2F;24"></a>25&#x2F;11&#x2F;24</h1><p>安装beegfs分布式文件系统在cn1~cn6上</p><h1 id="25-11-25"><a href="#25-11-25" class="headerlink" title="25&#x2F;11&#x2F;25"></a>25&#x2F;11&#x2F;25</h1><p>配置conda本地源</p><p>进行GDS对比测试</p><p>l 借走6块华为3.84T硬盘</p><h1 id="25-11-26"><a href="#25-11-26" class="headerlink" title="25&#x2F;11&#x2F;26"></a>25&#x2F;11&#x2F;26</h1><p>完成gds6系统盘备份，复制gds6的系统盘到新的硬盘上</p><p>配置pip下载源</p><h1 id="25-11-27"><a href="#25-11-27" class="headerlink" title="25&#x2F;11&#x2F;27"></a>25&#x2F;11&#x2F;27</h1><p>完成GDS&#x2F;GDR对比测试</p><p>跑通mlperf storage测试</p><p>完成gpu集群汇报</p><h1 id="25-11-28"><a href="#25-11-28" class="headerlink" title="25&#x2F;11&#x2F;28"></a>25&#x2F;11&#x2F;28</h1><p>完成GDS完整的对比测试</p><h1 id="25-11-29-总结"><a href="#25-11-29-总结" class="headerlink" title="25&#x2F;11&#x2F;29 总结"></a>25&#x2F;11&#x2F;29 总结</h1><p>配置pip、conda本地源，完成系统盘备份，使集群具有cuda 12.4和13.0两种开发环境</p><p>在集群上进行GDS和GDR对比测试以及mlperf storage测试</p><p>在gds5服务器上部署vscode remote-ssh，现在能远程调试集群上的程序</p><p>在gds5服务器上部署gitlab，现在可以将代码上传到集群进行协作开发及版本控制</p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>湘潭大学浪潮AI服务器使用</title>
       <link href="/2025/10/26/%E6%B9%98%E6%BD%AD%E5%A4%A7%E5%AD%A6%E6%B5%AA%E6%BD%AEAI%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8/"/>
       <url>/2025/10/26/%E6%B9%98%E6%BD%AD%E5%A4%A7%E5%AD%A6%E6%B5%AA%E6%BD%AEAI%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8/</url>
